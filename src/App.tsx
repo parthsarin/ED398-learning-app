@@ -32,7 +32,6 @@ interface Avatar {
   src: string,
   height: number,
   width: number,
-  style?: CSSProperties
 }
 
 export default class App extends Component<{}, State> {
@@ -51,11 +50,6 @@ export default class App extends Component<{}, State> {
       src: '/logo512.png',
       height: 100,
       width: 100,
-      style: {
-        'height': 100,
-        'width': 100,
-        'position': 'relative',
-      }
     };
   }
 
@@ -100,7 +94,8 @@ export default class App extends Component<{}, State> {
     <img
       style={
         {
-          ...this.avatar.style,
+          height: this.avatar.height,
+          width: this.avatar.width,
         }
       }
       src={this.avatar.src}
