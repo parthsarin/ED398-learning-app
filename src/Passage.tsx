@@ -6,17 +6,16 @@ interface Props {
 }
 
 const Passage: FunctionComponent<Props> = ({ passage, displayUpTo }) => {
-    let displayText = passage;
-    if (displayUpTo) {
-        const pieces = passage.split(/(?<=\.*[?\.!] )/g);;
-        const displayChunks = pieces.slice(0, displayUpTo);
-
-        displayText = displayChunks.join("");
-    }
+    const pieces = passage.split(/(?<=\.*[?.!] )/g);
+    const displayChunks = displayUpTo ? pieces.slice(0, displayUpTo) : pieces;
 
     return (
         <div className="passage-box">
-            <p>{ displayText }</p>
+            {
+                displayChunks.map(
+                    sentence => <p>{sentence}</p>
+                )
+            }
         </div>
     );
 }

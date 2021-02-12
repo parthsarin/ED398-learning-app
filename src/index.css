@@ -16,3 +16,10 @@
   margin: auto;
   font-size: 20pt;
 }
+
+/* Passages */
+.passage-box {
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  font-size: 20pt;
+  margin-top: 5px;
+}

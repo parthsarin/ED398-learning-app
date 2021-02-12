@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Col, Container, Row } from 'react-bootstrap';
+import Passage from './Passage';
 
 enum Step {
   INSTRUCTIONS = 0,
@@ -25,7 +26,7 @@ interface Question {
   correct: number
 }
 
-interface Passage {
+interface PassageData {
   passage: string,
   question: Question
 }
@@ -34,6 +35,8 @@ interface State {
   run: Run,
   step: Step,
   height: number,
+  passageIndex: number,
+  passages?: { [key in Run]?: PassageData[] },
   error?: string,
   strategy?: Strategy,
   bestStrategy?: Strategy,
@@ -57,6 +60,7 @@ export default class App extends Component<{}, State> {
       run: Run.ASSIGNED_STRATEGY,
       step: Step.INSTRUCTIONS,
       height: 400,
+      passageIndex: 0,
     };
 
     this.avatar = {
@@ -69,8 +73,16 @@ export default class App extends Component<{}, State> {
   }
 
   componentDidMount() {
-    const data = require("data");
-    // TODO: load this as the data for the app
+    const rawData = require("./data.json");
+    let passages: State['passages'] = {};
+    for (let i = 0; i < rawData.length; i++) {
+      const run = i as Run;
+      const val = rawData[i].map((p: any) => p as PassageData)
+
+      passages[run] = val;
+    }
+
+    this.setState({ passages });
   }
 
   calcNextStep = (): Step => {
@@ -78,7 +90,6 @@ export default class App extends Component<{}, State> {
 
     switch (curr) {
       case Step.INSTRUCTIONS:
-        // Load passage, question, answer -> state
         if (this.state.run === Run.ASSIGNED_STRATEGY) {
           this.setState({ strategy: Strategy.NO_MECH }); // start with no mech
         }
@@ -176,7 +187,16 @@ export default class App extends Component<{}, State> {
 
   buildPassage = () => (
     <>
-      <Col className="align-self-end" md={9}>
+      <Col className="" md={8}>
+        <Passage
+          passage={
+            this.state.passages
+              ? this.state.passages[this.state.run]![this.state.passageIndex].passage
+              : ""
+          }
+        />
+      </Col>
+      <Col className="align-self-end" md={1}>
         {this.buildAdvanceButton()}
       </Col>
       <Col className="align-self-end" md={3}>
