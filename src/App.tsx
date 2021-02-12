@@ -29,7 +29,9 @@ interface State {
 }
 
 interface Avatar {
-  src: string,
+  neutral: string,
+  positive: string,
+  negative: string,
   height: number,
   width: number,
 }
@@ -47,7 +49,9 @@ export default class App extends Component<{}, State> {
     };
 
     this.avatar = {
-      src: '/logo512.png',
+      neutral: '/tyler.jpg',
+      positive: '/tyler.jpg',
+      negative: '/tyler.jpg',
       height: 100,
       width: 100,
     };
@@ -59,7 +63,11 @@ export default class App extends Component<{}, State> {
     switch (curr) {
       case Step.INSTRUCTIONS:
         // Load passage, question, answer -> state
+        if (this.state.run === Run.ASSIGNED_STRATEGY) {
+          this.setState({ strategy: Strategy.NO_MECH }); // start with no mech
+        }
         return Step.PASSAGE;
+
       case Step.PASSAGE:
         return Step.QUESTION;
       case Step.QUESTION:
@@ -70,7 +78,9 @@ export default class App extends Component<{}, State> {
             // return -> Step.Feedback
           // if no 
             // which run are we on?
-              // run 1 -> Step.PASSAGE
+              // run 1 
+                // toggle strategy
+                // -> Step.PASSAGE
               // run 2 -> Step.PICK_STRATEGY
         return Step.PASSAGE;
       case Step.FEEDBACK:
@@ -90,26 +100,27 @@ export default class App extends Component<{}, State> {
     }
   }
 
-  buildAvatarBottomLeft = () => (
+  buildAvatarBottomLeft = (scale: number = 1) => (
     <img
       style={
         {
-          height: this.avatar.height,
-          width: this.avatar.width,
+          height: this.avatar.height * scale,
+          width: this.avatar.width * scale,
         }
       }
-      src={this.avatar.src}
+      src={this.avatar.neutral}
       alt=""
     />
   )
 
-  buildLargeMessageBox = (message: string) => (
+  buildLargeMessageBox = (message: string, style: any = {}) => (
     <div className="message-box d-flex" style={
       {
         'position': 'relative',
         'height': this.state.height - this.avatar.height - 40,
         'width': "100%",
         'bottom': this.avatar.height,
+        ...style
       }
     }>
       <p className="align-self-center">{ message }</p>
@@ -147,10 +158,38 @@ export default class App extends Component<{}, State> {
     );
   }
 
+  buildPassage = () => (
+    <>
+      <Col className="align-self-end" md={9}>
+        {this.buildAdvanceButton()}
+      </Col>
+      <Col className="align-self-end" md={3}>
+        { 
+          this.buildLargeMessageBox(
+            "Let's read the passage!",
+            { bottom: 0, width: "80%", left: 50 }
+          ) 
+        }
+        { this.buildAvatarBottomLeft(0.8) }
+      </Col>
+    </>
+  )
+
   render() {
     let component: JSX.Element | null = null;
-    if (this.state.step === Step.INSTRUCTIONS) {
-      component = this.buildInstructions();
+    switch (this.state.step) {
+      case Step.INSTRUCTIONS:
+        component = this.buildInstructions();
+        break;
+      case Step.PASSAGE:
+        component = this.buildPassage();
+        break;
+      case Step.QUESTION:
+        break;
+      case Step.FEEDBACK:
+        break;
+      case Step.PICK_STRATEGY:
+        break;
     }
 
     return (
