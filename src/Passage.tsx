@@ -12,8 +12,8 @@ const Passage: FunctionComponent<Props> = ({ passage, displayUpTo }) => {
     return (
         <div className="passage-box">
             {
-                displayChunks.map(
-                    sentence => <p>{sentence}</p>
+                displayChunks.map((sentence, idx) => 
+                    (<p key={`sentence-${idx}`}>{sentence}</p>)
                 )
             }
         </div>

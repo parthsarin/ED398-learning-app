@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import Passage from './Passage';
+import Question from './Question';
 
 enum Step {
   INSTRUCTIONS = 0,
@@ -20,7 +21,7 @@ enum Run {
   PICK_STRATEGY
 }
 
-interface Question {
+interface QuestionData {
   prompt: string,
   answers: string[],
   correct: number
@@ -28,7 +29,7 @@ interface Question {
 
 interface PassageData {
   passage: string,
-  question: Question
+  question: QuestionData
 }
 
 interface State {
@@ -211,6 +212,32 @@ export default class App extends Component<{}, State> {
     </>
   )
 
+  buildQuestion = () => (
+    <>
+      <Col className="" md={8}>
+        <Question
+          question={
+            this.state.passages
+              ? this.state.passages[this.state.run]![this.state.passageIndex].question
+              : null
+          }
+        />
+      </Col>
+      <Col className="align-self-end" md={1}>
+        {this.buildAdvanceButton("Submit")}
+      </Col>
+      <Col className="align-self-end" md={3}>
+        {
+          this.buildLargeMessageBox(
+            "Can you help me answer this question?",
+            { bottom: 0, width: "80%", left: 50 }
+          )
+        }
+        {this.buildAvatarBottomLeft(0.8)}
+      </Col>
+    </>
+  )
+
   render() {
     let component: JSX.Element | null = null;
     switch (this.state.step) {
@@ -221,6 +248,7 @@ export default class App extends Component<{}, State> {
         component = this.buildPassage();
         break;
       case Step.QUESTION:
+        component = this.buildQuestion();
         break;
       case Step.FEEDBACK:
         break;
@@ -241,3 +269,5 @@ export default class App extends Component<{}, State> {
     );
   }
 }
+
+export type { QuestionData };

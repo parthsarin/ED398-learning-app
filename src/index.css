@@ -23,3 +23,11 @@
   font-size: 20pt;
   margin-top: 5px;
 }
+
+.passage-box label {
+  display: inline-block;
+  margin: 0;
+  line-height: 28px;
+  height: 28px;
+  vertical-align: top;
+}
