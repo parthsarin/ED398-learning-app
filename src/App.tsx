@@ -60,6 +60,41 @@ export default class App extends Component<{}, State> {
     };
   }
 
+  calcNextStep = (): Step | string => {
+    const curr = this.state.step;
+
+    switch (curr) {
+      case Step.INSTRUCTIONS:
+        return Step.PASSAGE;
+      case Step.PASSAGE:
+        return Step.QUESTION;
+      case Step.QUESTION:
+        // grade question
+        // check if we're out of questions for this run
+          // if yes 
+            // get next passage, question, answer -> state
+            // return -> Step.Feedback
+          // if no 
+            // which run are we on?
+              // run 1 -> Step.PASSAGE
+              // run 2 -> Step.PICK_STRATEGY
+        return Step.PASSAGE;
+      case Step.FEEDBACK:
+        // Increment the run counter and nullify strategy
+        this.setState({ run: this.state.run + 1, strategy: undefined });
+        // Get next passage, question, answer -> state
+        return Step.PICK_STRATEGY;
+      case Step.PICK_STRATEGY:
+        if (this.state.strategy) {
+          // Get next passage, question, answer -> state
+          return Step.PASSAGE;
+        } else {
+          // Error: no strategy has been picked
+          return "No strategy has been picked.";
+        }
+    }
+  }
+
   buildAvatarBottomLeft = () => (
     <img
       style={
