@@ -19,6 +19,17 @@ enum Run {
   PICK_STRATEGY
 }
 
+interface Question {
+  prompt: string,
+  answers: string[],
+  correct: number
+}
+
+interface Passage {
+  passage: string,
+  question: Question
+}
+
 interface State {
   run: Run,
   step: Step,
@@ -49,12 +60,17 @@ export default class App extends Component<{}, State> {
     };
 
     this.avatar = {
-      neutral: '/tyler.jpg',
-      positive: '/tyler.jpg',
-      negative: '/tyler.jpg',
-      height: 100,
+      neutral: '/juliet.png',
+      positive: '/juliet.png',
+      negative: '/juliet.png',
+      height: 125,
       width: 100,
     };
+  }
+
+  componentDidMount() {
+    const data = require("data");
+    // TODO: load this as the data for the app
   }
 
   calcNextStep = (): Step => {
