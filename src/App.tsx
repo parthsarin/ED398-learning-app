@@ -1,5 +1,5 @@
 import React, { Component, CSSProperties } from 'react';
-import { Container } from 'react-bootstrap';
+import { Button, Col, Container, Row } from 'react-bootstrap';
 
 enum Step {
   INSTRUCTIONS = 0,
@@ -23,7 +23,7 @@ interface State {
   run: Run,
   step: Step,
   height: number,
-  width: number,
+  error?: string,
   strategy?: Strategy,
   bestStrategy?: Strategy,
 }
@@ -45,7 +45,6 @@ export default class App extends Component<{}, State> {
       run: Run.ASSIGNED_STRATEGY,
       step: Step.INSTRUCTIONS,
       height: 400,
-      width: 1100,
     };
 
     this.avatar = {
@@ -60,11 +59,12 @@ export default class App extends Component<{}, State> {
     };
   }
 
-  calcNextStep = (): Step | string => {
+  calcNextStep = (): Step => {
     const curr = this.state.step;
 
     switch (curr) {
       case Step.INSTRUCTIONS:
+        // Load passage, question, answer -> state
         return Step.PASSAGE;
       case Step.PASSAGE:
         return Step.QUESTION;
@@ -90,7 +90,8 @@ export default class App extends Component<{}, State> {
           return Step.PASSAGE;
         } else {
           // Error: no strategy has been picked
-          return "No strategy has been picked.";
+          this.setState({ 'error': "We haven't picked a strategy!" })
+          return Step.PASSAGE;
         }
     }
   }
@@ -100,7 +101,6 @@ export default class App extends Component<{}, State> {
       style={
         {
           ...this.avatar.style,
-          'top': this.state.height - this.avatar.height - 20,
         }
       }
       src={this.avatar.src}
@@ -113,13 +113,22 @@ export default class App extends Component<{}, State> {
       {
         'position': 'relative',
         'height': this.state.height - this.avatar.height - 40,
-        'width': this.state.width - this.avatar.width - 80,
-        'bottom': this.avatar.height - 20,
-        'left': this.avatar.width
+        'width': "100%",
+        'bottom': this.avatar.height,
       }
     }>
       <p className="align-self-center">{ message }</p>
     </div>
+  )
+
+  buildAdvanceButton = (text: string = "Next") => (
+    <Button 
+      variant="primary"
+      onClick={() => this.setState({ step: this.calcNextStep() })}
+      className="float-right"
+    >
+      { text }
+    </Button>
   )
 
   buildInstructions() {
@@ -130,8 +139,15 @@ export default class App extends Component<{}, State> {
     choose whether we want to use it or not or not.`;
     return (
       <>
-        { this.buildAvatarBottomLeft() }
-        { this.buildLargeMessageBox(message) }
+        <Col md={1} className="align-self-end">
+          { this.buildAvatarBottomLeft() }
+        </Col>
+        <Col md={10} className="align-self-end">
+          { this.buildLargeMessageBox(message) }
+        </Col>
+        <Col md={1} className="align-self-end">
+          { this.buildAdvanceButton() }
+        </Col>
       </>
     );
   }
@@ -144,11 +160,13 @@ export default class App extends Component<{}, State> {
 
     return (
       <Container className="mt-2">
-        <div id="app-border" style={
-          {'height': this.state.height, 'width': this.state.width}
+        <Row id="app-border" style={
+          {
+            'height': this.state.height,
+          }
         }>
           {component}
-        </div>
+        </Row>
       </Container>
     );
   }
