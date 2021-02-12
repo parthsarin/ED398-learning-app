@@ -17,7 +17,7 @@ const Question: FunctionComponent<Props> = ({ question }) => {
             <hr />
             <Form>
                 {
-                    question.answers.map((answer,idx) => (
+                    question.answers.map((answer, idx) => (
                         <Form.Check
                             type={'radio'}
                             id={'question-radio'}
