@@ -1,7 +1,7 @@
 [
     [
         {
-            "passage": "Why doth you weareth mother's drapes? Mars is very hot! Venus is even hotter, though. Tyler is the hottest.",
+            "passage": "Why doth you weareth mother's drapes?\nMars is very hot!\nVenus is even hotter, though.\nTyler is the hottest.",
             "question": {
                 "prompt": "What was the hottest object?",
                 "answers": [
@@ -11,6 +11,18 @@
                     "Tyler"
                 ],
                 "correct": 3
+            }
+        },
+        {
+            "passage": "O Romeo, Romeo! wherefore art thou Romeo?\nDeny thy father and refuse thy name;\nOr, if thou wilt not, be but sworn my love,\nAnd I'll no longer be a Capulet.",
+            "question": {
+                "prompt": "What does the speaker want Romeo to do?",
+                "answers": [
+                    "Change his name.",
+                    "Steal her innocence.",
+                    "Leave his family."
+                ],
+                "correct": 2
             }
         }
     ],

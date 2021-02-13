@@ -46,7 +46,7 @@ interface State {
 
   // Answer
   selectedAnswer: number | null,
-  numCorrect: { [key in Run]?: number }
+  numCorrect: { [r in Run]?: { [s in Strategy]?: number } }
 }
 
 interface Avatar {
@@ -69,7 +69,7 @@ export default class App extends Component<{}, State> {
       height: 400,
       passageIndex: 0,
       selectedAnswer: null,
-      numCorrect: {}
+      numCorrect: {},
     };
 
     this.avatar = {
@@ -150,19 +150,34 @@ export default class App extends Component<{}, State> {
           return Step.QUESTION;
         } else {
           // Update the grade
-          const corrInRun = this.state.numCorrect[this.state.run];
+          let numCorrect = Object.assign({}, this.state.numCorrect);
+
+          // Copy data from the state
+          if (!(this.state.run in numCorrect)) {
+            numCorrect[this.state.run] = {};
+          } else {
+            numCorrect[this.state.run] = Object.assign({}, this.state.numCorrect[this.state.run]);
+          }
+
+          if (!(this.state.strategy! in numCorrect[this.state.run]!)) {
+            numCorrect[this.state.run]![this.state.strategy!] = 0;
+          } else {
+            numCorrect[this.state.run]![this.state.strategy!] 
+              = this.state.numCorrect[this.state.run]![this.state.strategy!]!;
+          }
+
+          const corrInRun = numCorrect[this.state.run]![this.state.strategy!]!;
           const correct = currAnswer === currPassage.question.correct ? 1 : 0;
 
-          if (corrInRun) {
-            this.setState({ 
-              numCorrect: { 
-                ...this.state.numCorrect,
-                [this.state.run]: corrInRun + correct,
-              } 
-            });
-          } else {
-            this.setState({ numCorrect: { [this.state.run]: correct } });
-          }
+          this.setState({ 
+            numCorrect: { 
+              ...numCorrect,
+              [this.state.run]: {
+                ...numCorrect[this.state.run]!,
+                [this.state.strategy!]: corrInRun + correct,
+              }
+            } 
+          });
         }
         
         // Get the next question
@@ -278,17 +293,53 @@ export default class App extends Component<{}, State> {
   }
 
   buildFeedback() {
-    const numCorrect = this.state.numCorrect[Run.ASSIGNED_STRATEGY];
-    const total = this.state.passages![Run.ASSIGNED_STRATEGY]?.length;
-    const message: string = `That was fun! We got ${numCorrect} of ${total}
-    correct.`;
+    const numCorrect = this.state.numCorrect[Run.ASSIGNED_STRATEGY]!;
+    const total = this.state.passages![Run.ASSIGNED_STRATEGY]!.length;
+
+    const numNoStrat = numCorrect[Strategy.NO_MECH]!;
+    const totalNoStrat = Math.ceil(total / 2);
+
+    const numSelfExp = numCorrect[Strategy.SELF_EXPLAIN]!;
+    const totalSelfExp = Math.floor(total / 2);
+
+    const message: string = `That was fun! We got ${numNoStrat} of 
+    ${totalNoStrat} correct when we weren't self-explaining and ${numSelfExp}
+    of ${totalSelfExp} when we were using self-explanation.`;
+
+    // Compute the better strategy
+    let betterStrat: string = "";
+    if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
+      // no strat was better
+      betterStrat = "Not self-explaining was better!";
+    }
+    else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
+      // self exp was better
+      betterStrat = "Self-explanation was better!";
+    }
+    else {
+      // the two strategies were equivalent
+      betterStrat = "The two studying strategies worked equally well!"
+    }
+
     return (
       <>
         <Col md={1} className="align-self-end">
           {this.buildAvatarBottomLeft()}
         </Col>
         <Col md={10} className="align-self-end">
-          {this.buildLargeMessageBox(message)}
+          <div className="message-box d-flex" style={
+            {
+              'position': 'relative',
+              'height': this.state.height - this.avatar.height - 40,
+              'width': "100%",
+              'bottom': this.avatar.height,
+            }
+          }>
+            <p className="align-self-center">
+              {message}<br />
+              <b>{betterStrat}</b>
+            </p>
+          </div>
         </Col>
         <Col md={1} className="align-self-end">
           {this.buildAdvanceButton()}

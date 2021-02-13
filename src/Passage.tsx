@@ -6,7 +6,7 @@ interface Props {
 }
 
 const Passage: FunctionComponent<Props> = ({ passage, displayUpTo }) => {
-    const pieces = passage.split(/(?<=\.*[?.!] )/g);
+    const pieces = passage.split(/\n/g);
     const displayChunks = displayUpTo ? pieces.slice(0, displayUpTo) : pieces;
 
     return (
