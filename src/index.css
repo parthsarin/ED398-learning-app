@@ -24,10 +24,11 @@
   margin-top: 5px;
 }
 
-.passage-box label {
-  display: inline-block;
-  margin: 0;
-  line-height: 28px;
-  height: 28px;
-  vertical-align: top;
+input[type="radio"] {
+  margin-top: -1px;
+  vertical-align: middle;
+}
+
+.answer-radio-group label {
+  margin-left: 10px;
 }

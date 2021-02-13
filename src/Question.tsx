@@ -1,34 +1,39 @@
-import React, { FunctionComponent, useState } from 'react';
-import { Form } from 'react-bootstrap';
+import React, { FunctionComponent } from 'react';
 import { QuestionData } from './App';
 
 interface Props {
-    question: QuestionData | null
+    question: QuestionData | null,
+    selected: number | null,
+    onChange: (selected: number) => void,
 }
 
-const Question: FunctionComponent<Props> = ({ question }) => {
-    const [selected, setSelected] = useState<number | null>(null);
-
+const Question: FunctionComponent<Props> = ({ question, selected, onChange }) => {
     if (!question) return null;
 
     return (
         <div className="passage-box">
             <p>{ question.prompt }</p>
             <hr />
-            <Form>
+            <form>
                 {
                     question.answers.map((answer, idx) => (
-                        <Form.Check
-                            type={'radio'}
-                            id={'question-radio'}
-                            key={`question-radio-${idx}`}
-                            label={answer}
-                            checked={idx === selected}
-                            onChange={() => setSelected(idx)}
-                        />
+                        <div className="answer-radio-group" key={`answer-${idx}`}>
+                            <input
+                                type={'radio'}
+                                id={`question-radio-${idx}`}
+                                name={'answer'}
+                                value={idx}
+                                key={`question-radio-${idx}`}
+                                checked={idx === selected}
+                                onChange={() => onChange(idx)}
+                            />
+                            <label htmlFor={`question-radio-${idx}`}>
+                                {answer}
+                            </label>
+                        </div>
                     ))
                 }
-            </Form>
+            </form>
         </div>
     )
 }

@@ -8,7 +8,8 @@ enum Step {
   PASSAGE,
   QUESTION,
   FEEDBACK,
-  PICK_STRATEGY
+  PICK_STRATEGY,
+  FINAL
 }
 
 enum Strategy {
@@ -38,9 +39,14 @@ interface State {
   height: number,
   passageIndex: number,
   passages?: { [key in Run]?: PassageData[] },
+  currPassage?: PassageData,
   error?: string,
   strategy?: Strategy,
   bestStrategy?: Strategy,
+
+  // Answer
+  selectedAnswer: number | null,
+  numCorrect: { [key in Run]?: number }
 }
 
 interface Avatar {
@@ -62,6 +68,8 @@ export default class App extends Component<{}, State> {
       step: Step.INSTRUCTIONS,
       height: 400,
       passageIndex: 0,
+      selectedAnswer: null,
+      numCorrect: {}
     };
 
     this.avatar = {
@@ -86,35 +94,116 @@ export default class App extends Component<{}, State> {
     this.setState({ passages });
   }
 
+  getNextQuestion = (): any => {
+    const currRun = this.state.run;
+    const currPassageIdx = this.state.passageIndex;
+    const currStrategy = this.state.strategy!;
+
+    const nextPassage = this.state.passages![currRun]![currPassageIdx+1];
+
+    if (!nextPassage) {
+      return false;
+    } else {
+      return {
+        passageIndex: currPassageIdx + 1,
+        currPassage: nextPassage,
+        error: "",
+        selectedAnswer: null,
+        strategy: 
+          this.state.run === Run.ASSIGNED_STRATEGY 
+            ? 1 - currStrategy as Run // toggle the strategy
+            : undefined // let the user pick the strategy
+      }
+    }
+  }
+
   calcNextStep = (): Step => {
     const curr = this.state.step;
 
     switch (curr) {
       case Step.INSTRUCTIONS:
         if (this.state.run === Run.ASSIGNED_STRATEGY) {
-          this.setState({ strategy: Strategy.NO_MECH }); // start with no mech
+          this.setState({ 
+            strategy: Strategy.NO_MECH, // start with no mech
+            currPassage: this.state.passages![this.state.run]![this.state.passageIndex]
+          }); 
         }
-        return Step.PASSAGE;
+
+        if (this.state.passages) {
+          return Step.PASSAGE;
+        } else {
+          // Nowhere to go...!
+          return Step.INSTRUCTIONS;
+        }
 
       case Step.PASSAGE:
         return Step.QUESTION;
+
       case Step.QUESTION:
-        // grade question
-        // check if we're out of questions for this run
-          // if yes 
-            // get next passage, question, answer -> state
-            // return -> Step.Feedback
-          // if no 
-            // which run are we on?
-              // run 1 
-                // toggle strategy
-                // -> Step.PASSAGE
-              // run 2 -> Step.PICK_STRATEGY
-        return Step.PASSAGE;
+        // Grade the current passage
+        const currPassage = this.state.currPassage!;
+        const currAnswer = this.state.selectedAnswer;
+
+        if (currAnswer === null) {
+          // They never selected an answer
+          this.setState({ error: "Hmm. We haven't selected an answer." });
+          return Step.QUESTION;
+        } else {
+          // Update the grade
+          const corrInRun = this.state.numCorrect[this.state.run];
+          const correct = currAnswer === currPassage.question.correct ? 1 : 0;
+
+          if (corrInRun) {
+            this.setState({ 
+              numCorrect: { 
+                ...this.state.numCorrect,
+                [this.state.run]: corrInRun + correct,
+              } 
+            });
+          } else {
+            this.setState({ numCorrect: { [this.state.run]: correct } });
+          }
+        }
+        
+        // Get the next question
+        const stateUpdate = this.getNextQuestion();
+        if (stateUpdate) {
+          // There are questions left
+          this.setState({ ...stateUpdate });
+          return Step.PASSAGE;
+        } 
+        else {
+          // We're out of questions
+          this.setState({
+            selectedAnswer: null,
+            error: "",
+            currPassage: undefined,
+            strategy: undefined,
+            passageIndex: -1,
+          })
+
+          if (this.state.run === Run.ASSIGNED_STRATEGY) {
+            // Look at the feedback from R1
+            return Step.FEEDBACK;
+          }
+          else { // if (this.state.run === Run.PICK_STRATEGY)
+            // Bye bye!
+            return Step.FINAL;
+          }
+        }
+
       case Step.FEEDBACK:
         // Increment the run counter and nullify strategy
-        this.setState({ run: this.state.run + 1, strategy: undefined });
-        // Get next passage, question, answer -> state
+        const nextRun = this.state.run + 1 as Run;
+        this.setState({ 
+          run: nextRun, 
+          strategy: undefined,
+          passageIndex: 0,
+          currPassage: this.state.passages![nextRun]![0],
+          error: "",
+          selectedAnswer: null
+        });
+
         return Step.PICK_STRATEGY;
       case Step.PICK_STRATEGY:
         if (this.state.strategy) {
@@ -125,6 +214,8 @@ export default class App extends Component<{}, State> {
           this.setState({ 'error': "We haven't picked a strategy!" })
           return Step.PASSAGE;
         }
+      case Step.FINAL:
+        return Step.FINAL;
     }
   }
 
@@ -186,13 +277,33 @@ export default class App extends Component<{}, State> {
     );
   }
 
+  buildFeedback() {
+    const numCorrect = this.state.numCorrect[Run.ASSIGNED_STRATEGY];
+    const total = this.state.passages![Run.ASSIGNED_STRATEGY]?.length;
+    const message: string = `That was fun! We got ${numCorrect} of ${total}
+    correct.`;
+    return (
+      <>
+        <Col md={1} className="align-self-end">
+          {this.buildAvatarBottomLeft()}
+        </Col>
+        <Col md={10} className="align-self-end">
+          {this.buildLargeMessageBox(message)}
+        </Col>
+        <Col md={1} className="align-self-end">
+          {this.buildAdvanceButton()}
+        </Col>
+      </>
+    );
+  }
+
   buildPassage = () => (
     <>
       <Col className="" md={8}>
         <Passage
           passage={
-            this.state.passages
-              ? this.state.passages[this.state.run]![this.state.passageIndex].passage
+            this.state.currPassage
+              ? this.state.currPassage.passage
               : ""
           }
         />
@@ -204,7 +315,7 @@ export default class App extends Component<{}, State> {
         { 
           this.buildLargeMessageBox(
             "Let's read the passage!",
-            { bottom: 0, width: "80%", left: 50 }
+            { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
           ) 
         }
         { this.buildAvatarBottomLeft(0.8) }
@@ -217,10 +328,12 @@ export default class App extends Component<{}, State> {
       <Col className="" md={8}>
         <Question
           question={
-            this.state.passages
-              ? this.state.passages[this.state.run]![this.state.passageIndex].question
+            this.state.currPassage
+              ? this.state.currPassage.question
               : null
           }
+          selected={this.state.selectedAnswer}
+          onChange={(selectedAnswer: number) => this.setState({ selectedAnswer })}
         />
       </Col>
       <Col className="align-self-end" md={1}>
@@ -229,8 +342,8 @@ export default class App extends Component<{}, State> {
       <Col className="align-self-end" md={3}>
         {
           this.buildLargeMessageBox(
-            "Can you help me answer this question?",
-            { bottom: 0, width: "80%", left: 50 }
+            this.state.error ? this.state.error : "Can you help me answer this question?",
+            { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
           )
         }
         {this.buildAvatarBottomLeft(0.8)}
@@ -251,8 +364,11 @@ export default class App extends Component<{}, State> {
         component = this.buildQuestion();
         break;
       case Step.FEEDBACK:
+        component = this.buildFeedback();
         break;
       case Step.PICK_STRATEGY:
+        break;
+      case Step.FINAL:
         break;
     }
 
