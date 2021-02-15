@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import Passage from './Passage';
 import Question from './Question';
+import SelfExplain from './SelfExplain';
 
 enum Step {
   INSTRUCTIONS = 0,
@@ -348,31 +349,43 @@ export default class App extends Component<{}, State> {
     );
   }
 
-  buildPassage = () => (
-    <>
-      <Col className="" md={8}>
-        <Passage
-          passage={
-            this.state.currPassage
-              ? this.state.currPassage.passage
-              : ""
-          }
+  buildPassage = () => {
+    if (this.state.strategy === Strategy.NO_MECH) {
+      return (
+        <>
+          <Col className="" md={8}>
+            <Passage
+              passage={
+                this.state.currPassage
+                  ? this.state.currPassage.passage
+                  : ""
+              }
+            />
+          </Col>
+          <Col className="align-self-end" md={1}>
+            {this.buildAdvanceButton()}
+          </Col>
+          <Col className="align-self-end" md={3}>
+            { 
+              this.buildLargeMessageBox(
+                "Let's read the passage!",
+                { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
+              ) 
+            }
+            { this.buildAvatarBottomLeft(0.8) }
+          </Col>
+        </>
+      );
+    } else { // if (this.state.strategy === Strategy.SELF_EXPLAIN)
+      return (
+        <SelfExplain 
+          passage={this.state.currPassage!} 
+          avatar={this.avatar}
+          advance={() => this.setState({ step: this.calcNextStep() })}
         />
-      </Col>
-      <Col className="align-self-end" md={1}>
-        {this.buildAdvanceButton()}
-      </Col>
-      <Col className="align-self-end" md={3}>
-        { 
-          this.buildLargeMessageBox(
-            "Let's read the passage!",
-            { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
-          ) 
-        }
-        { this.buildAvatarBottomLeft(0.8) }
-      </Col>
-    </>
-  )
+      );
+    }
+  }
 
   buildQuestion = () => (
     <>
@@ -437,4 +450,4 @@ export default class App extends Component<{}, State> {
   }
 }
 
-export type { QuestionData };
+export type { QuestionData, PassageData, Avatar };

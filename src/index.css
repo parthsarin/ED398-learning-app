@@ -32,3 +32,21 @@ input[type="radio"] {
 .answer-radio-group label {
   margin-left: 10px;
 }
+
+/* Self-explanation */
+.se-message-box {
+  background-color: #ede4ff;
+}
+
+.se-message-input {
+  background-color: #ede4ff;
+  border: none;
+  overflow: auto;
+  outline: none;
+
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+
+  resize: none;
+}
