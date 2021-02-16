@@ -200,6 +200,28 @@ export default class App extends Component<{}, State> {
 
           if (this.state.run === Run.ASSIGNED_STRATEGY) {
             // Look at the feedback from R1
+            const numCorrect = this.state.numCorrect[Run.ASSIGNED_STRATEGY]!;
+            const total = this.state.passages![Run.ASSIGNED_STRATEGY]!.length;
+
+            const numNoStrat = numCorrect[Strategy.NO_MECH]!;
+            const totalNoStrat = Math.ceil(total / 2);
+
+            const numSelfExp = numCorrect[Strategy.SELF_EXPLAIN]!;
+            const totalSelfExp = Math.floor(total / 2);
+
+            // Compute the better strategy
+            if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
+              // no strat was better
+              this.setState({ bestStrategy: Strategy.NO_MECH });
+            }
+            else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
+              // self exp was better
+              this.setState({ bestStrategy: Strategy.SELF_EXPLAIN });
+            }
+            else {
+              // the two strategies were equivalent
+              this.setState({ bestStrategy: undefined });
+            }
             return Step.FEEDBACK;
           }
           else { // if (this.state.run === Run.PICK_STRATEGY)
@@ -309,17 +331,18 @@ export default class App extends Component<{}, State> {
 
     // Compute the better strategy
     let betterStrat: string = "";
-    if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
-      // no strat was better
-      betterStrat = "Not self-explaining was better!";
-    }
-    else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
-      // self exp was better
-      betterStrat = "Self-explanation was better!";
-    }
-    else {
-      // the two strategies were equivalent
-      betterStrat = "The two studying strategies worked equally well!"
+    switch (this.state.bestStrategy) {
+      case undefined:
+        betterStrat = "The two studying strategies worked equally well!";
+        break;
+
+      case Strategy.SELF_EXPLAIN:
+        betterStrat = "Self-explanation was better!";
+        break;
+
+      case Strategy.NO_MECH:
+        betterStrat = "Not self-explaining was better!";
+        break;
     }
 
     return (
@@ -382,6 +405,7 @@ export default class App extends Component<{}, State> {
           passage={this.state.currPassage!} 
           avatar={this.avatar}
           advance={() => this.setState({ step: this.calcNextStep() })}
+          containerHeight={this.state.height}
         />
       );
     }

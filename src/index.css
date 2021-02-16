@@ -38,6 +38,10 @@ input[type="radio"] {
   background-color: #ede4ff;
 }
 
+.se-message-box span {
+  line-height: 0;
+}
+
 .se-message-input {
   background-color: #ede4ff;
   border: none;
@@ -49,4 +53,28 @@ input[type="radio"] {
   box-shadow: none;
 
   resize: none;
+}
+
+#se-message-col {
+  overflow-y: scroll;
+}
+
+.se-send-button {
+  border: none;
+  overflow: auto;
+  outline: none;
+
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
+.se-send-button:focus {
+  border: none;
+  overflow: auto;
+  outline: none;
+
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }

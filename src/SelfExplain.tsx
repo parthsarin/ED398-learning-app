@@ -7,6 +7,7 @@ interface Props {
     passage: PassageData,
     avatar: Avatar,
     advance: () => void,
+    containerHeight: number,
 }
 
 interface Message {
@@ -24,9 +25,9 @@ const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
         return (
             <Row className="mt-2">
                 <Col md={2}>
-                    <img src={avatar.neutral} className="rounded-circle w-100" />
+                    <img src={avatar.neutral} alt="" className="rounded-circle w-100" />
                 </Col>
-                <Col md={10} className="se-message-box">
+                <Col md={10} className="se-message-box p-2">
                     <span className="align-middle">{message.text}</span>
                 </Col>
             </Row>
@@ -34,25 +35,54 @@ const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
     } else {
         return (
             <Row className="mt-2">
-                <Col md={12} className="se-message-box">
+                <Col md={12} className="se-message-box p-2">
                     <span className="align-middle">{message.text}</span>
                 </Col>
             </Row>
         )
     }
-
-    return null;
 }
 
 
-const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance }) => {
+const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, containerHeight }) => {
     const firstMessage = {
         text: "Hmm. I don't understand how those two sentences connect... Can you explain?",
         bot: true,
     }
     const [history, setHistory] = useState<Message[]>([firstMessage]);
     const [numLines, setNumLines] = useState<number>(2);
+    const [response, setResponse] = useState<string>("");
     const totalLines = passage.passage.split(/\n/g).length;
+
+    const handleSend = () => {
+        if (!response) return;
+
+        // Add the message that was just sent
+        const newMessage = {
+            text: response,
+            bot: false,
+        } as Message;
+        let historyUpdate: Message[] = [newMessage];
+
+        // Add a bot response if more messages
+        const moreMessages = numLines < totalLines;
+        if (moreMessages) {
+            historyUpdate.push({
+                text: "Okay, that makes sense. What about these last two? How do they connect?",
+                bot: true
+            } as Message);
+        } else {
+            historyUpdate.push({
+                text: "Got it! Whenever you're ready, we can take a look at the question!",
+                bot: true,
+            } as Message);
+        }
+
+        // Update the state
+        setNumLines(numLines + 1);
+        setResponse("");
+        setHistory([...history, ...historyUpdate]);
+    }
 
     return (
         <>
@@ -67,25 +97,54 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance }) => 
                     variant="primary"
                     onClick={advance}
                     className="float-right"
-                    disabled={numLines < totalLines}
+                    disabled={numLines < totalLines + 1}
                 >
                     Next
                 </Button>
             </Col>
-            <Col className="h-100 border-left align-self-end" md={5}>
-                {
-                    history.map(message => 
-                        <MessageBox message={message} avatar={avatar} />
-                    )
-                }
-                <Row className="mt-2">
-                    <Col md={10} className="se-message-box p-0">
-                        <textarea className="se-message-input w-100 h-100"></textarea>
-                    </Col>
-                    <Col md={2} className="my-auto text-center">
-                        <i className="fas fa-arrow-alt-circle-up text-primary h2"></i>
-                    </Col>
-                </Row>
+            <Col 
+                className="" 
+                id="se-message-col" 
+                md={5}
+                style={{
+                    height: containerHeight-20,
+                    overflowY: "scroll",
+                    overflowX: "hidden"
+                }}
+            >
+                <div className="flex-grow-1">
+                    {
+                        history.map(message => 
+                            <MessageBox message={message} avatar={avatar} />
+                        )
+                    }
+                </div>
+                <div className="flex-grow-1">
+                    <Row className="mt-2 w-100">
+                        <Col md={11} className="se-message-box p-0">
+                            <textarea 
+                                className="se-message-input w-100 h-100 p-2"
+                                placeholder="Type your response..."
+                                value={response}
+                                onChange={(e) => setResponse(e.target.value)}
+                            ></textarea>
+                        </Col>
+                        <Col md={1} className="my-auto text-center p-0">
+                            <Button
+                                aria-label="send message"
+                                onClick={handleSend}
+                                variant="link"
+                                className="se-send-button"
+                            >
+                                <i 
+                                    className="fas fa-arrow-alt-circle-up text-primary h3"
+                                    aria-hidden="true"
+                                >    
+                                </i>
+                            </Button>
+                        </Col>
+                    </Row>
+                </div>
             </Col>
         </>
     );
