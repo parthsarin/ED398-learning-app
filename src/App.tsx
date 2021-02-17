@@ -74,9 +74,9 @@ export default class App extends Component<{}, State> {
     };
 
     this.avatar = {
-      neutral: '/juliet.png',
-      positive: '/juliet.png',
-      negative: '/juliet.png',
+      neutral: `${process.env.PUBLIC_URL}/juliet.png`,
+      positive: `${process.env.PUBLIC_URL}/juliet.png`,
+      negative: `${process.env.PUBLIC_URL}/juliet.png`,
       height: 125,
       width: 100,
     };
