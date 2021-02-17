@@ -114,8 +114,8 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
             >
                 <div className="flex-grow-1">
                     {
-                        history.map(message => 
-                            <MessageBox message={message} avatar={avatar} />
+                        history.map((message, i) => 
+                            <MessageBox key={i} message={message} avatar={avatar} />
                         )
                     }
                 </div>

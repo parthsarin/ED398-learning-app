@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import Passage from './Passage';
+import PickStrategy from './PickStrategy';
 import Question from './Question';
 import SelfExplain from './SelfExplain';
 
@@ -42,12 +43,15 @@ interface State {
   passages?: { [key in Run]?: PassageData[] },
   currPassage?: PassageData,
   error?: string,
+
+  // Strategy
   strategy?: Strategy,
   bestStrategy?: Strategy,
 
   // Answer
   selectedAnswer: number | null,
-  numCorrect: { [r in Run]?: { [s in Strategy]?: number } }
+  numCorrect: { [r in Run]?: { [s in Strategy]?: number } },
+  numTotalSecondRun: { [s in Strategy]?: number },
 }
 
 interface Avatar {
@@ -71,14 +75,15 @@ export default class App extends Component<{}, State> {
       passageIndex: 0,
       selectedAnswer: null,
       numCorrect: {},
+      numTotalSecondRun: {},
     };
 
     this.avatar = {
-      neutral: `${process.env.PUBLIC_URL}/juliet.png`,
-      positive: `${process.env.PUBLIC_URL}/juliet.png`,
-      negative: `${process.env.PUBLIC_URL}/juliet.png`,
+      neutral: `${process.env.PUBLIC_URL}/neutral.png`,
+      positive: `${process.env.PUBLIC_URL}/positive.png`,
+      negative: `${process.env.PUBLIC_URL}/negative.png`,
       height: 125,
-      width: 100,
+      width: 125,
     };
   }
 
@@ -118,6 +123,38 @@ export default class App extends Component<{}, State> {
     }
   }
 
+  calcNewGrade = (): State['numCorrect'] => {
+    // Current variables
+    const currPassage = this.state.currPassage!;
+    const currAnswer = this.state.selectedAnswer;
+
+    // Copy data from the state
+    let numCorrect = Object.assign({}, this.state.numCorrect);
+    if (!(this.state.run in numCorrect)) {
+      numCorrect[this.state.run] = {};
+    } else {
+      numCorrect[this.state.run] = Object.assign({}, this.state.numCorrect[this.state.run]);
+    }
+
+    if (!(this.state.strategy! in numCorrect[this.state.run]!)) {
+      numCorrect[this.state.run]![this.state.strategy!] = 0;
+    } else {
+      numCorrect[this.state.run]![this.state.strategy!]
+        = this.state.numCorrect[this.state.run]![this.state.strategy!]!;
+    }
+
+    const corrInRun = numCorrect[this.state.run]![this.state.strategy!]!;
+    var correct = currAnswer === currPassage.question.correct ? 1 : 0;
+
+    return {
+      ...numCorrect,
+      [this.state.run]: {
+        ...numCorrect[this.state.run]!,
+        [this.state.strategy!]: corrInRun + correct,
+      }
+    };
+  }
+
   calcNextStep = (): Step => {
     const curr = this.state.step;
 
@@ -141,45 +178,16 @@ export default class App extends Component<{}, State> {
         return Step.QUESTION;
 
       case Step.QUESTION:
-        // Grade the current passage
-        const currPassage = this.state.currPassage!;
-        const currAnswer = this.state.selectedAnswer;
-
-        if (currAnswer === null) {
+        // Did they select an answer?
+        if (this.state.selectedAnswer === null) {
           // They never selected an answer
           this.setState({ error: "Hmm. We haven't selected an answer." });
           return Step.QUESTION;
-        } else {
-          // Update the grade
-          let numCorrect = Object.assign({}, this.state.numCorrect);
-
-          // Copy data from the state
-          if (!(this.state.run in numCorrect)) {
-            numCorrect[this.state.run] = {};
-          } else {
-            numCorrect[this.state.run] = Object.assign({}, this.state.numCorrect[this.state.run]);
-          }
-
-          if (!(this.state.strategy! in numCorrect[this.state.run]!)) {
-            numCorrect[this.state.run]![this.state.strategy!] = 0;
-          } else {
-            numCorrect[this.state.run]![this.state.strategy!] 
-              = this.state.numCorrect[this.state.run]![this.state.strategy!]!;
-          }
-
-          const corrInRun = numCorrect[this.state.run]![this.state.strategy!]!;
-          const correct = currAnswer === currPassage.question.correct ? 1 : 0;
-
-          this.setState({ 
-            numCorrect: { 
-              ...numCorrect,
-              [this.state.run]: {
-                ...numCorrect[this.state.run]!,
-                [this.state.strategy!]: corrInRun + correct,
-              }
-            } 
-          });
         }
+          
+        // Grade the current question
+        const newGrade = this.calcNewGrade();
+        this.setState({ numCorrect: newGrade });
         
         // Get the next question
         const stateUpdate = this.getNextQuestion();
@@ -188,47 +196,44 @@ export default class App extends Component<{}, State> {
           this.setState({ ...stateUpdate });
           return Step.PASSAGE;
         } 
-        else {
-          // We're out of questions
-          this.setState({
-            selectedAnswer: null,
-            error: "",
-            currPassage: undefined,
-            strategy: undefined,
-            passageIndex: -1,
-          })
 
-          if (this.state.run === Run.ASSIGNED_STRATEGY) {
-            // Look at the feedback from R1
-            const numCorrect = this.state.numCorrect[Run.ASSIGNED_STRATEGY]!;
-            const total = this.state.passages![Run.ASSIGNED_STRATEGY]!.length;
+        // We're out of questions
+        this.setState({
+          selectedAnswer: null,
+          error: "",
+          currPassage: undefined,
+          strategy: undefined,
+          passageIndex: -1,
+        })
 
-            const numNoStrat = numCorrect[Strategy.NO_MECH]!;
-            const totalNoStrat = Math.ceil(total / 2);
+        if (this.state.run === Run.ASSIGNED_STRATEGY) {
+          // Compute the better strategy
+          const numCorrect = newGrade[Run.ASSIGNED_STRATEGY]!;
+          const total = this.state.passages![Run.ASSIGNED_STRATEGY]!.length;
 
-            const numSelfExp = numCorrect[Strategy.SELF_EXPLAIN]!;
-            const totalSelfExp = Math.floor(total / 2);
+          const numNoStrat = numCorrect[Strategy.NO_MECH]!;
+          const totalNoStrat = Math.ceil(total / 2);
 
-            // Compute the better strategy
-            if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
-              // no strat was better
-              this.setState({ bestStrategy: Strategy.NO_MECH });
-            }
-            else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
-              // self exp was better
-              this.setState({ bestStrategy: Strategy.SELF_EXPLAIN });
-            }
-            else {
-              // the two strategies were equivalent
-              this.setState({ bestStrategy: undefined });
-            }
-            return Step.FEEDBACK;
+          const numSelfExp = numCorrect[Strategy.SELF_EXPLAIN]!;
+          const totalSelfExp = Math.floor(total / 2);
+
+          if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
+            // no strat was better
+            this.setState({ bestStrategy: Strategy.NO_MECH });
           }
-          else { // if (this.state.run === Run.PICK_STRATEGY)
-            // Bye bye!
-            return Step.FINAL;
+          else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
+            // self exp was better
+            this.setState({ bestStrategy: Strategy.SELF_EXPLAIN });
           }
+          else {
+            // the two strategies were equivalent
+            this.setState({ bestStrategy: undefined });
+          }
+          return Step.FEEDBACK;
         }
+
+        // Bye bye!
+        return Step.FINAL;
 
       case Step.FEEDBACK:
         // Increment the run counter and nullify strategy
@@ -244,20 +249,28 @@ export default class App extends Component<{}, State> {
 
         return Step.PICK_STRATEGY;
       case Step.PICK_STRATEGY:
-        if (this.state.strategy) {
-          // Get next passage, question, answer -> state
+        if (this.state.strategy !== undefined) {
+          const query = this.state.numTotalSecondRun[this.state.strategy];
+          const newTotal = query ? query + 1 : 1;
+
+          this.setState({
+            numTotalSecondRun: {
+              ...this.state.numTotalSecondRun,
+              [this.state.strategy]: newTotal
+            }
+          });
           return Step.PASSAGE;
         } else {
           // Error: no strategy has been picked
           this.setState({ 'error': "We haven't picked a strategy!" })
-          return Step.PASSAGE;
+          return Step.PICK_STRATEGY;
         }
       case Step.FINAL:
         return Step.FINAL;
     }
   }
 
-  buildAvatarBottomLeft = (scale: number = 1) => (
+  buildAvatarBottomLeft = (scale: number = 1, srcSub: string = "") => (
     <img
       style={
         {
@@ -265,7 +278,7 @@ export default class App extends Component<{}, State> {
           width: this.avatar.width * scale,
         }
       }
-      src={this.avatar.neutral}
+      src={srcSub ? srcSub : this.avatar.neutral}
       alt=""
     />
   )
@@ -296,7 +309,7 @@ export default class App extends Component<{}, State> {
 
   buildInstructions() {
     const message: string = `Welcome to the Learning Mechanic Learning App! 
-    We're going to read passages of text from Shakespeare and then you'll help 
+    We're going to read passages about science and then you'll help 
     me answer comprehension questions about the passage. First, we'll learn a 
     studying strategy called "self-explanation" and then later, we'll get to
     choose whether we want to use it or not or not.`;
@@ -439,6 +452,57 @@ export default class App extends Component<{}, State> {
     </>
   )
 
+  buildPickStrategy = () => (
+    <PickStrategy
+      bestStrategy={this.state.bestStrategy}
+      avatar={this.avatar}
+      height={this.state.height}
+      advance={() => this.setState({ step: this.calcNextStep() })}
+      selectStrategy={(strategy: Strategy) => this.setState({ strategy })}
+    />
+  )
+
+  buildFinalStep = () => {
+    const runOneTotals = {
+      SECorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.SELF_EXPLAIN],
+      SETotal: Math.floor(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
+      NMCorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.NO_MECH],
+      NMTotal: Math.ceil(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
+    }
+
+    const numOrZero = (n: any) => n ? n : 0;
+    const runTwoTotals = {
+      SECorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.SELF_EXPLAIN]),
+      SETotal: numOrZero(this.state.numTotalSecondRun[Strategy.SELF_EXPLAIN]),
+      NMCorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.NO_MECH]),
+      NMTotal: numOrZero(this.state.numTotalSecondRun[Strategy.NO_MECH]),
+    }
+
+    return (
+      <>
+        <Col md={2} className="align-self-end">
+          {this.buildAvatarBottomLeft(1.5, this.avatar.positive)}
+        </Col>
+        <Col md={10} className="align-self-end">
+          <div className="message-box d-flex" style={
+            {
+              'position': 'relative',
+              'height': this.state.height - this.avatar.height - 40,
+              'width': "100%",
+              'bottom': this.avatar.height,
+            }
+          }>
+            <p className="align-self-center">
+              As a reminder, during the first run, we got {runOneTotals.NMCorrect} of {runOneTotals.NMTotal} correct without using self-explanation and {runOneTotals.SECorrect} of {runOneTotals.SETotal} when we were using self-explanation.<br />
+              During the second run, we got {runTwoTotals.NMCorrect} of {runTwoTotals.NMTotal} correct without using self-explanation and {runTwoTotals.SECorrect} of {runTwoTotals.SETotal} when we were using self-explanation!<br />
+              Thanks for participating! Did the emotional manipulation feel like torture?
+            </p>
+          </div>
+        </Col>
+      </>
+    );
+  }
+
   render() {
     let component: JSX.Element | null = null;
     switch (this.state.step) {
@@ -455,8 +519,11 @@ export default class App extends Component<{}, State> {
         component = this.buildFeedback();
         break;
       case Step.PICK_STRATEGY:
+        const ComponentClass = this.buildPickStrategy;
+        component = <ComponentClass />;
         break;
       case Step.FINAL:
+        component = this.buildFinalStep();
         break;
     }
 
@@ -474,4 +541,5 @@ export default class App extends Component<{}, State> {
   }
 }
 
+export { Strategy };
 export type { QuestionData, PassageData, Avatar };
