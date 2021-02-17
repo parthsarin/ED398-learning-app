@@ -1,26 +1,131 @@
 [
     [
         {
-            "passage": "Why doth you weareth mother's drapes?\nMars is very hot!\nVenus is even hotter, though.\nTyler is the hottest.",
+            "passage": "The top of a tectonic plate is made of crust.\nThere are two types of crust: oceanic and continental.\nOceanic crust is denser than continental crust.\nContinental crust is thicker than oceanic crust.",
             "question": {
-                "prompt": "What was the hottest object?",
+                "prompt": "Why are oceanic plates submerged in water while continental plates are not?",
                 "answers": [
-                    "Mother's drapes",
-                    "Mars",
-                    "Venus",
-                    "Tyler"
+                    "Ocean crust is denser and, therefore, thinner than continental crust, allowing water to fill the difference.",
+                    "Continental crust experiences more volcanic flow, allowing it to build taller despite the weight of its rock base.",
+                    "Oceanic crust is the real crust, while all continental crust is built up on an oceanic crust base.",
+                    "Continental crust is less dense, so it can float on a thick layer of water beneath it while oceanic crust is denser, so it sinks no matter how much water is beneath it."
+                ],
+                "correct": 0
+            }
+        },
+        {
+            "passage": "Oceanic and continental crust have very different compositions.\nOceanic crust is largely made up of igneous rocks like basalt.\nContinental crust is largely made up of granite.",
+            "question": {
+                "prompt": "From the composition of continental and oceanic plates, what can we conclude about granite vs. basalt (a type of igneous rock)?",
+                "answers": [
+                    "Basalt is denser than granite ",
+                    "Basalt is heavier than granite",
+                    "Granite is rarer than basalt",
+                    "Granite is denser than basalt"
+                ],
+                "correct": 0
+            }
+        },
+        {
+            "passage": "There are three kinds of plate boundaries: convergent, divergent, and transform.\nConvergent and divergent boundaries are like opposites.\nIn a divergent boundary, two plates move apart. Rifts and ridges are common at these boundaries.\nIn a transform boundary, two plates slide past each other. Earthquakes are common at transform boundaries.",
+            "question": {
+                "prompt": "What kind of fault is the San Andreas Fault in California?",
+                "answers": [
+                    "Convergent",
+                    "Divergent",
+                    "Transform",
+                    "Metamorphic"
+                ],
+                "correct": 2
+            }
+        },
+        {
+            "passage": "Oceanic-oceanic convergence is where two plates made of oceanic crust converge.\nOne plate subducts under the other, forming a trench.\nContinental-continental convergence occurs where two continental plates converge.\nOne plate subducts, melts and becomes part of the mantle, while the other compacts.",
+            "question": {
+                "prompt": "What would you expect to form at a Continental-continental convergent boundary?",
+                "answers": [
+                    "Mountains",
+                    "A trench",
+                    "Volcanoes",
+                    "Both A and B"
+                ],
+                "correct": 0
+            }
+        },
+        {
+            "passage": "Oceanic-continental convergence occurs where an oceanic plate converges with a continental plate.\nThe oceanic plate subducts under the continental plate because it's denser.\nOceanic-continental convergences share features with oceanic-oceanic convergences.",
+            "question": {
+                "prompt": "Several large and active volcanoes are located near the Indonesian islands. What kind of plate boundary do these islands most likely sit on?",
+                "answers": [
+                    "Transform",
+                    "Subduction",
+                    "Convergent",
+                    "Divergent"
+                ],
+                "correct": 2
+            }
+        },
+        {
+            "passage": "Sea floor spreading is the creation of new crust or lithosphere at a divergent plate boundary.\nMost divergent plate boundaries occur between oceanic plates.\nAs plates drift apart, magma rises through the boundary to create new crust.",
+            "question": {
+                "prompt": "Based on plate tectonic theory, why is there not much lava on land?",
+                "answers": [
+                    "Lava only comes from active volcanoes, and most volcanoes are underwater.",
+                    "Lava cools quickly on the surface, so we don't see much of it.",
+                    "Lava most easily comes from divergent plate boundaries and most divergent boundaries are underwater.",
+                    "Lava can melt the thinner oceanic crust more easily than the thick continental crust, so it can escape into the ocean easier than it can on land."
+                ],
+                "correct": 2
+            }
+        },
+        {
+            "passage": "As the sea floor spreads, new crust is continually made at the boundary as long as the plates move apart.\nOlder crust is found far away from the boundary and new crust is found close to the boundary.\nRidges created by sea floor spreading move as quickly as 12 cm per year.",
+            "question": {
+                "prompt": "As the sea floor spreads, more ocean crust is created. Will this greatly affect the land-to-sea ratio?",
+                "answers": [
+                    "Yes, ocean crust will keep spreading while land is fixed, so one day the oceans will spread onto continental plates.",
+                    "No, new ocean crust is created, but continental-oceanic subduction zones allow new land to be made from volcanic material.",
+                    "Yes, Earth used to be almost all land, but sea floor spreading has reduced the land to less than 1/3 of the Earth's surface.",
+                    "No, new ocean crust is created, but old ocean crust piles higher until it becomes continental crust, making more land."
+                ],
+                "correct": 1
+            }
+        },
+        {
+            "passage": "Rock in the mantle is not molten or liquid but plastic-like.\nBecause it is plastic-like, it is able to transfer heat through convection.\nConvection is the transfer of heat from one place to another by movement of a fluid.\nThe fluid carries thermal energy with it. The movement creates a circulation motion of warm and cold fluid.",
+            "question": {
+                "prompt": "Why does the Earth's mantle move?",
+                "answers": [
+                    "The Earth's motion around the sun causes the fluid mantle to shift around",
+                    "The tectonic events like earthquakes or volcanic eruptions cause the mantle to shift around. ",
+                    "The Earth's iron core generates a magnetic field that causes charged particles in the mantle to move.",
+                    "The difference in temperature between the Earth's core and crust causes hotter mantle to rise and cool, and colder mantle to fall and heat in a cycle that moves mantle. "
                 ],
                 "correct": 3
             }
         },
         {
-            "passage": "O Romeo, Romeo! wherefore art thou Romeo?\nDeny thy father and refuse thy name;\nOr, if thou wilt not, be but sworn my love,\nAnd I'll no longer be a Capulet.",
+            "passage": "Scientists believe convection in the asthenosphere causes tectonic plates to move.\nWhen mantle spreads along the top of the asthenosphere, it transfers heat to the lithosphere.\nMore importantly, the moving mantle “pulls” lithosphere with it.\nThis pull is believed to drive the motion of tectonic plates.",
             "question": {
-                "prompt": "What does the speaker want Romeo to do?",
+                "prompt": "Given that the Moon's interior is much colder and lighter than Earth's, how much tectonic activity should we expect on the Moon in comparison to Earth?",
                 "answers": [
-                    "Change his name.",
-                    "Steal her innocence.",
-                    "Leave his family."
+                    "More, the Moon is lighter so the plates on the moon can move more easily.",
+                    "Less, the Moon has less convection to move its plates because its core is colder.",
+                    "More, the Moon's surface-core temperature difference is greater, making convection more powerful.",
+                    "Less, the Moon's core is lighter which means there is a smaller magnetic field that leads to less mantle movement."
+                ],
+                "correct": 1
+            }
+        },
+        {
+            "passage": "The Continental Drift Theory is a scientific theory that explains the movement of tectonic plates and continents.\nAccording to this theory, continents slowly drift (a few centimeters a year) along with their tectonic plates.\nToday, North and South America are moving westward, while Australia is moving to the north.",
+            "question": {
+                "prompt": "According to Continental Drift Theory, the continents are slowly moving. In 150 million years, what could we expect Earth's continents to look like?",
+                "answers": [
+                    "Australia collides with southeast Asia, North and South America detach, Africa drifts south.",
+                    "Australia drifts east into the middle of the Pacific, Africa collides with India, North and South America combine, filling in the Gulf of Mexico.",
+                    "Australia collides with southeast Asia, North and South America drift west towards Asia, Africa drifts north, filling the Mediterranean.",
+                    "The continents look similarly to how they are today, but a few centimeters shifted."
                 ],
                 "correct": 2
             }

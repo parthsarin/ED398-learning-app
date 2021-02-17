@@ -71,7 +71,7 @@ export default class App extends Component<{}, State> {
     this.state = {
       run: Run.ASSIGNED_STRATEGY,
       step: Step.INSTRUCTIONS,
-      height: 400,
+      height: 600,
       passageIndex: 0,
       selectedAnswer: null,
       numCorrect: {},

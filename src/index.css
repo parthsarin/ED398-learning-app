@@ -31,6 +31,7 @@ input[type="radio"] {
 
 .answer-radio-group label {
   margin-left: 10px;
+  display: inline;
 }
 
 /* Self-explanation */

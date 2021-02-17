@@ -46,10 +46,14 @@ const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
 
 const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, containerHeight }) => {
     const firstMessage = {
+        text: "Let's read this passage using self-explanation!",
+        bot: true,
+    }
+    const secondMessage = {
         text: "Hmm. I don't understand how those two sentences connect... Can you explain?",
         bot: true,
     }
-    const [history, setHistory] = useState<Message[]>([firstMessage]);
+    const [history, setHistory] = useState<Message[]>([firstMessage, secondMessage]);
     const [numLines, setNumLines] = useState<number>(2);
     const [response, setResponse] = useState<string>("");
     const totalLines = passage.passage.split(/\n/g).length;
