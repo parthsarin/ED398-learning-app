@@ -194,7 +194,12 @@ export default class App extends Component<{}, State> {
         if (stateUpdate) {
           // There are questions left
           this.setState({ ...stateUpdate });
-          return Step.PASSAGE;
+
+          if (this.state.run === Run.ASSIGNED_STRATEGY) {
+            return Step.PASSAGE;
+          } else {
+            return Step.PICK_STRATEGY;
+          }
         } 
 
         // We're out of questions
@@ -404,7 +409,7 @@ export default class App extends Component<{}, State> {
           <Col className="align-self-end" md={3}>
             { 
               this.buildLargeMessageBox(
-                "Let's read the passage!",
+                "Let's read this passage without using self-explanation!",
                 { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
               ) 
             }

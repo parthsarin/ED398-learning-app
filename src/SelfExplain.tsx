@@ -24,8 +24,8 @@ const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
     if (message.bot) {
         return (
             <Row className="mt-2">
-                <Col md={2}>
-                    <img src={avatar.neutral} alt="" className="rounded-circle w-100" />
+                <Col md={2} className="d-flex">
+                    <img src={avatar.neutral} alt="" className="my-auto rounded-circle w-100" />
                 </Col>
                 <Col md={10} className="se-message-box p-2">
                     <span className="align-middle">{message.text}</span>
