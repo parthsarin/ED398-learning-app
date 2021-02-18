@@ -1,6 +1,19 @@
 [
     [
         {
+            "passage": "Why doth you weareth mother's drapes? Mars is very hot! Venus is even hotter, though. Tyler is the hottest.",
+            "question": {
+                "prompt": "What was the hottest object?",
+                "answers": [
+                    "Mother's drapes",
+                    "Mars",
+                    "Venus",
+                    "Tyler"
+                ],
+                "correct": 3
+            }
+        },
+        {
             "passage": "The top of a tectonic plate is made of crust.\nThere are two types of crust: oceanic and continental.\nOceanic crust is denser than continental crust.\nContinental crust is thicker than oceanic crust.",
             "question": {
                 "prompt": "Why are oceanic plates submerged in water while continental plates are not?",
