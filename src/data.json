@@ -1,7 +1,7 @@
 [
     [
         {
-            "passage": "Why doth you weareth mother's drapes? Mars is very hot! Venus is even hotter, though. Tyler is the hottest.",
+            "passage": "Why doth you weareth mother's drapes?\nMars is very hot!\nVenus is even hotter, though.\nTyler is the hottest.",
             "question": {
                 "prompt": "What was the hottest object?",
                 "answers": [
