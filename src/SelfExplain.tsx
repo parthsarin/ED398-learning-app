@@ -88,6 +88,13 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
         setHistory([...history, ...historyUpdate]);
     }
 
+    const handleEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    }
+
     return (
         <>
             <Col className="" md={6}>
@@ -131,6 +138,7 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
                                 placeholder="Type your response..."
                                 value={response}
                                 onChange={(e) => setResponse(e.target.value)}
+                                onKeyDown={handleEnter}
                             ></textarea>
                         </Col>
                         <Col md={1} className="my-auto text-center p-0">
