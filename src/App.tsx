@@ -495,6 +495,7 @@ export default class App extends Component<{}, State> {
         bestStrategy={this.state.bestStrategy}
         avatar={this.avatar}
         height={this.state.height}
+        giveReward={this.state.condition === Condition.REWARD}
         advance={conditionalAdvance}
         selectStrategy={(strategy: Strategy) => this.setState({ strategy })}
       />

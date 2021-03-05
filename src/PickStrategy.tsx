@@ -6,12 +6,13 @@ interface Props {
     bestStrategy?: Strategy,
     avatar: Avatar,
     height: number,
+    giveReward: boolean,
     advance: () => void,
     selectStrategy: (s: Strategy) => void,
 }
 
 const PickStrategy: FunctionComponent<Props> = 
-    ({ bestStrategy, avatar, height, advance, selectStrategy }) => {
+    ({ bestStrategy, avatar, height, giveReward, advance, selectStrategy }) => {
     const [strategy, setStrategy] = useState<Strategy | null>(null);
 
     const handleSubmit = (s: Strategy) => {
@@ -19,7 +20,8 @@ const PickStrategy: FunctionComponent<Props> =
         selectStrategy(s);
     }
 
-    if (strategy !== null) {
+    if (giveReward && strategy !== null) {
+        // Selected a strategy, give a reward
         const positive = (bestStrategy === undefined) || (strategy === bestStrategy);
         const message = positive ? "Yay! That sounds fun!" : "Oh. Okay. I guess we can do that.";
 
@@ -54,7 +56,12 @@ const PickStrategy: FunctionComponent<Props> =
                 </Col>
             </>
         );
+    } else if (!giveReward && strategy !== null) {
+        // Selected a strategy, don't give a reward
+        advance()
+        return null;
     } else {
+        // Haven't selected a strategy
         return (
             <>
                 <Col md={1} className="align-self-end">
