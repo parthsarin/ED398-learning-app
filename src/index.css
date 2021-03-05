@@ -17,6 +17,25 @@
   font-size: 20pt;
 }
 
+/* Metadata */
+.metadata-condition-box {
+  border-radius: 1em;
+  border: 1px solid black;
+  padding: 80px;
+  margin: 0 auto;
+  background-color: #f3edff;
+  cursor: pointer;
+  font-size: 18pt;
+}
+
+.metadata-condition-box:hover {
+  background-color: #e3d5ff;
+}
+
+.metadata-condition-box.active {
+  background-color: #c4a6ff;
+}
+
 /* Passages */
 .passage-box {
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;

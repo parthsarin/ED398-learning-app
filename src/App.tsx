@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import { Button, Col, Container, Row } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
 import Passage from './Passage';
 import PickStrategy from './PickStrategy';
 import Question from './Question';
 import SelfExplain from './SelfExplain';
 
 enum Step {
-  INSTRUCTIONS = 0,
+  STUDY_METADATA = 0,
+  INSTRUCTIONS,
   PASSAGE,
   QUESTION,
   FEEDBACK,
@@ -22,6 +23,11 @@ enum Strategy {
 enum Run {
   ASSIGNED_STRATEGY = 0,
   PICK_STRATEGY
+}
+
+enum Condition {
+  NO_REWARD = 0,
+  REWARD
 }
 
 interface QuestionData {
@@ -43,6 +49,10 @@ interface State {
   passages?: { [key in Run]?: PassageData[] },
   currPassage?: PassageData,
   error?: string,
+
+  // Metadata
+  name: string,
+  condition: Condition | null,
 
   // Strategy
   strategy?: Strategy,
@@ -70,7 +80,9 @@ export default class App extends Component<{}, State> {
 
     this.state = {
       run: Run.ASSIGNED_STRATEGY,
-      step: Step.INSTRUCTIONS,
+      step: Step.STUDY_METADATA,
+      name: "",
+      condition: null,
       height: 600,
       passageIndex: 0,
       selectedAnswer: null,
@@ -159,6 +171,20 @@ export default class App extends Component<{}, State> {
     const curr = this.state.step;
 
     switch (curr) {
+      case Step.STUDY_METADATA:
+        if (!this.state.name) {
+          this.setState({ error: "Please enter your name." });
+          return Step.STUDY_METADATA;
+        }
+
+        if (this.state.condition === null) {
+          this.setState({ error: "Please select a condition." });
+          return Step.STUDY_METADATA;
+        }
+
+        this.setState({ error: "" })
+        return Step.INSTRUCTIONS;
+      
       case Step.INSTRUCTIONS:
         if (this.state.run === Run.ASSIGNED_STRATEGY) {
           this.setState({ 
@@ -508,7 +534,7 @@ export default class App extends Component<{}, State> {
             <p className="align-self-center">
               As a reminder, during the first run, we got {runOneTotals.NMCorrect} of {runOneTotals.NMTotal} correct without using self-explanation and {runOneTotals.SECorrect} of {runOneTotals.SETotal} when we were using self-explanation.<br />
               During the second run, we got {runTwoTotals.NMCorrect} of {runTwoTotals.NMTotal} correct without using self-explanation and {runTwoTotals.SECorrect} of {runTwoTotals.SETotal} when we were using self-explanation!<br />
-              Thanks for participating! Did the emotional manipulation feel like torture?
+              Thanks for participating!
             </p>
           </div>
         </Col>
@@ -516,9 +542,77 @@ export default class App extends Component<{}, State> {
     );
   }
 
+  buildMetadata = () => (
+    <Col className="h-100 d-flex flex-column">
+      <Row className="align-items-center" style={{ flexGrow: 1 }}>
+        <Col>
+          { 
+            this.state.error
+            ? <Alert variant="danger">{ this.state.error }</Alert>
+            : null
+          }
+        </Col>
+      </Row>
+      <Row style={{ flexGrow: 1 }}>
+        <Col>
+          <div className="input-group input-group-lg">
+            <div className="input-group-prepend">
+              <span className="input-group-text" id="input-name-text">
+                Enter your name
+              </span>
+            </div>
+            <input 
+              type="text"
+              className="form-control"
+              aria-label="name"
+              aria-describedby="input-name-text"
+              value={this.state.name} 
+              onChange={(e) => this.setState({ name: e.target.value })} 
+              placeholder={"Parth Sarin"}
+            />
+          </div>
+        </Col>
+      </Row>
+      <Row className="align-items-center" style={{ flexGrow: 3 }}>
+        <Col className="d-flex align-items-center">
+          {
+            [Condition.NO_REWARD, Condition.REWARD].map((condition, i) => (
+              <div 
+                className={`metadata-condition-box ${this.state.condition === condition ? 'active': ''}`} 
+                key={i}
+                role="button"
+                aria-pressed={this.state.condition === condition}
+                tabIndex={0}
+                onClick={() => this.setState({ condition })}
+                onKeyDown={(e) => { if (e.key === " " || e.key === "Enter" || e.key === "Spacebar") { e.preventDefault(); this.setState({ condition });  } }}
+              >
+                <span>Condition {i+1}</span>
+              </div>
+            ))
+          }
+        </Col>
+      </Row>
+      <Row className="align-items-center" style={{ flexGrow: 1 }}>
+        <Col>
+          <Button
+            variant="primary"
+            onClick={() => this.setState({ step: this.calcNextStep() })}
+            className="d-block mx-auto"
+            style={{ fontSize: "18pt" }}
+          >
+            Start
+          </Button>
+        </Col>
+      </Row>
+    </Col>
+  )
+
   render() {
     let component: JSX.Element | null = null;
     switch (this.state.step) {
+      case Step.STUDY_METADATA:
+        component = this.buildMetadata();
+        break;
       case Step.INSTRUCTIONS:
         component = this.buildInstructions();
         break;

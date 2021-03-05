@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState } from 'react';
-import { Button, Col, Row } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import { Avatar, Strategy } from './App';
 
 interface Props {
