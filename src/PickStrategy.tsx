@@ -1,21 +1,30 @@
 import React, { FunctionComponent, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { Avatar, Strategy } from './App';
+import db, { firebase } from './db';
 
 interface Props {
     bestStrategy?: Strategy,
     avatar: Avatar,
     height: number,
+    dbInject: any,
     giveReward: boolean,
     advance: () => void,
     selectStrategy: (s: Strategy) => void,
 }
 
 const PickStrategy: FunctionComponent<Props> = 
-    ({ bestStrategy, avatar, height, giveReward, advance, selectStrategy }) => {
+    ({ bestStrategy, avatar, dbInject, height, giveReward, advance, selectStrategy }) => {
     const [strategy, setStrategy] = useState<Strategy | null>(null);
 
     const handleSubmit = (s: Strategy) => {
+        db.collection('events').add({
+            ...dbInject,
+            event: "PICK_STRATEGY",
+            strategy: s,
+            giveReward: giveReward,
+            timestamp: firebase.firestore.Timestamp.now()
+        })
         setStrategy(s);
         selectStrategy(s);
     }

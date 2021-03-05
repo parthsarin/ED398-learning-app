@@ -2,12 +2,14 @@ import React, { FunctionComponent, useState } from 'react';
 import { Button, Col, Row } from 'react-bootstrap';
 import { PassageData, Avatar } from './App';
 import Passage from './Passage';
+import db, { firebase } from './db';
 
 interface Props {
     passage: PassageData,
     avatar: Avatar,
     advance: () => void,
     containerHeight: number,
+    dbInject: any,
 }
 
 interface Message {
@@ -44,7 +46,7 @@ const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
 }
 
 
-const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, containerHeight }) => {
+const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, containerHeight, dbInject }) => {
     const firstMessage = {
         text: "Let's read this passage using self-explanation!",
         bot: true,
@@ -81,6 +83,14 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
                 bot: true,
             } as Message);
         }
+
+        db.collection('events').add({
+            ...dbInject,
+            event: "SE_SEND_MESSAGE",
+            piecesShowing: passage.passage.split(/\n/g).slice(0, numLines),
+            message: response,
+            timestamp: firebase.firestore.Timestamp.now()
+        })
 
         // Update the state
         setNumLines(numLines + 1);

@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import { Alert, Button, Col, Container, Row } from 'react-bootstrap';
+import { v4 as uuid } from 'uuid';
 import Passage from './Passage';
 import PickStrategy from './PickStrategy';
 import Question from './Question';
 import SelfExplain from './SelfExplain';
+import db, { firebase } from './db';
 
 enum Step {
   STUDY_METADATA = 0,
@@ -74,6 +76,7 @@ interface Avatar {
 
 export default class App extends Component<{}, State> {
   avatar: Avatar;
+  unique_id: string;
 
   constructor(props: {}) {
     super(props);
@@ -97,6 +100,8 @@ export default class App extends Component<{}, State> {
       height: 125,
       width: 125,
     };
+
+    this.unique_id = uuid();
   }
 
   componentDidMount() {
@@ -110,6 +115,13 @@ export default class App extends Component<{}, State> {
     }
 
     this.setState({ passages });
+
+    // Session begins
+    db.collection('events').add({
+      session: this.unique_id,
+      event: "SESSION_START",
+      timestamp: firebase.firestore.Timestamp.now(),
+    });
   }
 
   getNextQuestion = (): any => {
@@ -157,6 +169,22 @@ export default class App extends Component<{}, State> {
 
     const corrInRun = numCorrect[this.state.run]![this.state.strategy!]!;
     var correct = currAnswer === currPassage.question.correct ? 1 : 0;
+
+    db.collection('events').add({
+      session: this.unique_id,
+      event: "QUESTION_SUBMIT",
+      name: this.state.name,
+      passage: currPassage.passage,
+      question: currPassage.question.prompt,
+      choices: currPassage.question.answers,
+      selected_answer: currAnswer,
+      correct_answer: currPassage.question.correct,
+      run: this.state.run,
+      strategy: this.state.strategy,
+      bestStrategy: this.state.bestStrategy ? this.state.bestStrategy : null,
+      correct: correct,
+      timestamp: firebase.firestore.Timestamp.now()
+    });
 
     return {
       ...numCorrect,
@@ -248,18 +276,33 @@ export default class App extends Component<{}, State> {
           const numSelfExp = numCorrect[Strategy.SELF_EXPLAIN]!;
           const totalSelfExp = Math.floor(total / 2);
 
+          let bestStrategy: Strategy | undefined = undefined;
           if (numNoStrat / totalNoStrat > numSelfExp / totalSelfExp) {
             // no strat was better
-            this.setState({ bestStrategy: Strategy.NO_MECH });
+            bestStrategy = Strategy.NO_MECH;
           }
           else if (numNoStrat / totalNoStrat < numSelfExp / totalSelfExp) {
             // self exp was better
-            this.setState({ bestStrategy: Strategy.SELF_EXPLAIN });
+            bestStrategy = Strategy.SELF_EXPLAIN;
           }
           else {
             // the two strategies were equivalent
-            this.setState({ bestStrategy: undefined });
+            bestStrategy = undefined;
           }
+          this.setState({ bestStrategy });
+
+          db.collection('events').add({
+            session: this.unique_id,
+            event: "HALFWAY_FEEDBACK",
+            name: this.state.name,
+            numNoStrat,
+            totalNoStrat,
+            numSelfExp,
+            totalSelfExp,
+            bestStrategy: bestStrategy ? bestStrategy : null,
+            timestamp: firebase.firestore.Timestamp.now()
+          })
+
           return Step.FEEDBACK;
         }
 
@@ -328,15 +371,42 @@ export default class App extends Component<{}, State> {
     </div>
   )
 
-  buildAdvanceButton = (text: string = "Next") => (
-    <Button 
-      variant="primary"
-      onClick={() => this.setState({ step: this.calcNextStep() })}
-      className="float-right"
-    >
-      { text }
-    </Button>
-  )
+  stepAdvancePersist = () => {
+    const nextStep = this.calcNextStep();
+
+    let event = "";
+    if (nextStep === this.state.step) {
+      event = "ERROR";
+    } else {
+      event = "STEP_ADVANCE";
+    }
+
+    db.collection('events').add({
+      session: this.unique_id,
+      event: event,
+      name: this.state.name,
+      error: this.state.error ? this.state.error : null,
+      condition: this.state.condition,
+      curr_step: this.state.step,
+      next_step: nextStep,
+      strategy: this.state.strategy ? this.state.strategy : null,
+      timestamp: firebase.firestore.Timestamp.now(),
+    });
+
+    this.setState({ step: nextStep });
+  }
+
+  buildAdvanceButton = (text: string = "Next") => {
+    return (
+      <Button 
+        variant="primary"
+        onClick={this.stepAdvancePersist}
+        className="float-right"
+      >
+        { text }
+      </Button>
+    );
+  }
 
   buildInstructions() {
     const message: string = `Welcome to the Learning Mechanic Learning App! 
@@ -444,12 +514,18 @@ export default class App extends Component<{}, State> {
         </>
       );
     } else { // if (this.state.strategy === Strategy.SELF_EXPLAIN)
+      
       return (
         <SelfExplain 
           passage={this.state.currPassage!} 
           avatar={this.avatar}
-          advance={() => this.setState({ step: this.calcNextStep() })}
+          advance={this.stepAdvancePersist}
           containerHeight={this.state.height}
+          dbInject={{
+            session: this.unique_id,
+            name: this.state.name,
+            condition: this.state.condition,
+          }}
         />
       );
     }
@@ -486,7 +562,7 @@ export default class App extends Component<{}, State> {
   buildPickStrategy = () => {
     const conditionalAdvance = () => {
       if (this.state.step === Step.PICK_STRATEGY) {
-        this.setState({ step: this.calcNextStep() });
+        this.stepAdvancePersist();
       }
     };
 
@@ -495,6 +571,11 @@ export default class App extends Component<{}, State> {
         bestStrategy={this.state.bestStrategy}
         avatar={this.avatar}
         height={this.state.height}
+        dbInject={{
+          session: this.unique_id,
+          name: this.state.name,
+          condition: this.state.condition,
+        }}
         giveReward={this.state.condition === Condition.REWARD}
         advance={conditionalAdvance}
         selectStrategy={(strategy: Strategy) => this.setState({ strategy })}
@@ -543,70 +624,79 @@ export default class App extends Component<{}, State> {
     );
   }
 
-  buildMetadata = () => (
-    <Col className="h-100 d-flex flex-column">
-      <Row className="align-items-center" style={{ flexGrow: 1 }}>
-        <Col>
-          { 
-            this.state.error
-            ? <Alert variant="danger">{ this.state.error }</Alert>
-            : null
-          }
-        </Col>
-      </Row>
-      <Row style={{ flexGrow: 1 }}>
-        <Col>
-          <div className="input-group input-group-lg">
-            <div className="input-group-prepend">
-              <span className="input-group-text" id="input-name-text">
-                Enter your name
-              </span>
-            </div>
-            <input 
-              type="text"
-              className="form-control"
-              aria-label="name"
-              aria-describedby="input-name-text"
-              value={this.state.name} 
-              onChange={(e) => this.setState({ name: e.target.value })} 
-              placeholder={"Parth Sarin"}
-            />
-          </div>
-        </Col>
-      </Row>
-      <Row className="align-items-center" style={{ flexGrow: 3 }}>
-        <Col className="d-flex align-items-center">
-          {
-            [Condition.NO_REWARD, Condition.REWARD].map((condition, i) => (
-              <div 
-                className={`metadata-condition-box ${this.state.condition === condition ? 'active': ''}`} 
-                key={i}
-                role="button"
-                aria-pressed={this.state.condition === condition}
-                tabIndex={0}
-                onClick={() => this.setState({ condition })}
-                onKeyDown={(e) => { if (e.key === " " || e.key === "Enter" || e.key === "Spacebar") { e.preventDefault(); this.setState({ condition });  } }}
-              >
-                <span>Condition {i+1}</span>
+  buildMetadata = () => {
+    const handleKeyDown = (condition: Condition) => (e: React.KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter" || e.key === "Spacebar") {
+        e.preventDefault(); 
+        this.setState({ condition }); 
+      }
+    }
+
+    return (
+      <Col className="h-100 d-flex flex-column">
+        <Row className="align-items-center" style={{ flexGrow: 1 }}>
+          <Col>
+            { 
+              this.state.error
+              ? <Alert variant="danger">{ this.state.error }</Alert>
+              : null
+            }
+          </Col>
+        </Row>
+        <Row style={{ flexGrow: 1 }}>
+          <Col>
+            <div className="input-group input-group-lg">
+              <div className="input-group-prepend">
+                <span className="input-group-text" id="input-name-text">
+                  Enter your name
+                </span>
               </div>
-            ))
-          }
-        </Col>
-      </Row>
-      <Row className="align-items-center" style={{ flexGrow: 1 }}>
-        <Col>
-          <Button
-            variant="primary"
-            onClick={() => this.setState({ step: this.calcNextStep() })}
-            className="d-block mx-auto"
-            style={{ fontSize: "18pt" }}
-          >
-            Start
-          </Button>
-        </Col>
-      </Row>
-    </Col>
-  )
+              <input 
+                type="text"
+                className="form-control"
+                aria-label="name"
+                aria-describedby="input-name-text"
+                value={this.state.name} 
+                onChange={(e) => this.setState({ name: e.target.value })} 
+                placeholder={"Parth Sarin"}
+              />
+            </div>
+          </Col>
+        </Row>
+        <Row className="align-items-center" style={{ flexGrow: 3 }}>
+          <Col className="d-flex align-items-center">
+            {
+              [Condition.NO_REWARD, Condition.REWARD].map((condition, i) => (
+                <div 
+                  className={`metadata-condition-box ${this.state.condition === condition ? 'active': ''}`} 
+                  key={i}
+                  role="button"
+                  aria-pressed={this.state.condition === condition}
+                  tabIndex={0}
+                  onClick={() => this.setState({ condition })}
+                  onKeyDown={handleKeyDown(condition)}
+                >
+                  <span>Condition {i+1}</span>
+                </div>
+              ))
+            }
+          </Col>
+        </Row>
+        <Row className="align-items-center" style={{ flexGrow: 1 }}>
+          <Col>
+            <Button
+              variant="primary"
+              onClick={this.stepAdvancePersist}
+              className="d-block mx-auto"
+              style={{ fontSize: "18pt" }}
+            >
+              Start
+            </Button>
+          </Col>
+        </Row>
+      </Col>
+    )
+  }
 
   render() {
     let component: JSX.Element | null = null;
