@@ -394,7 +394,7 @@ export default class App extends Component<{}, State> {
     if (this.state.strategy === Strategy.NO_MECH) {
       return (
         <>
-          <Col className="" md={8}>
+          <Col className="" md={7}>
             <Passage
               passage={
                 this.state.currPassage
@@ -406,7 +406,7 @@ export default class App extends Component<{}, State> {
           <Col className="align-self-end" md={1}>
             {this.buildAdvanceButton()}
           </Col>
-          <Col className="align-self-end" md={3}>
+          <Col className="align-self-end" md={4}>
             { 
               this.buildLargeMessageBox(
                 "Let's read this passage without using self-explanation!",
@@ -431,7 +431,7 @@ export default class App extends Component<{}, State> {
 
   buildQuestion = () => (
     <>
-      <Col className="" md={8}>
+      <Col className="" md={7}>
         <Question
           question={
             this.state.currPassage
@@ -445,7 +445,7 @@ export default class App extends Component<{}, State> {
       <Col className="align-self-end" md={1}>
         {this.buildAdvanceButton("Submit")}
       </Col>
-      <Col className="align-self-end" md={3}>
+      <Col className="align-self-end" md={4}>
         {
           this.buildLargeMessageBox(
             this.state.error ? this.state.error : "Can you help me answer this question?",
@@ -457,15 +457,23 @@ export default class App extends Component<{}, State> {
     </>
   )
 
-  buildPickStrategy = () => (
-    <PickStrategy
-      bestStrategy={this.state.bestStrategy}
-      avatar={this.avatar}
-      height={this.state.height}
-      advance={() => this.setState({ step: this.calcNextStep() })}
-      selectStrategy={(strategy: Strategy) => this.setState({ strategy })}
-    />
-  )
+  buildPickStrategy = () => {
+    const conditionalAdvance = () => {
+      if (this.state.step === Step.PICK_STRATEGY) {
+        this.setState({ step: this.calcNextStep() });
+      }
+    };
+
+    return (
+      <PickStrategy
+        bestStrategy={this.state.bestStrategy}
+        avatar={this.avatar}
+        height={this.state.height}
+        advance={conditionalAdvance}
+        selectStrategy={(strategy: Strategy) => this.setState({ strategy })}
+      />
+    );
+  }
 
   buildFinalStep = () => {
     const runOneTotals = {

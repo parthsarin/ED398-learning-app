@@ -23,17 +23,20 @@ const PickStrategy: FunctionComponent<Props> =
         const positive = (bestStrategy === undefined) || (strategy === bestStrategy);
         const message = positive ? "Yay! That sounds fun!" : "Oh. Okay. I guess we can do that.";
 
+        setTimeout(advance, 2500);
+
         return (
             <>
-                <Col md={3} className="align-self-end">
+                <Col md={4} className="align-self-end">
                     <img
                         style={
                             {
-                                height: avatar.height * 2,
-                                width: avatar.width * 2,
+                                height: avatar.height * 2.5,
+                                width: avatar.width * 2.5,
                             }
                         }
                         src={positive ? avatar.positive : avatar.negative}
+                        className="mx-auto d-block"
                         alt=""
                     />
                 </Col>
@@ -48,15 +51,6 @@ const PickStrategy: FunctionComponent<Props> =
                     }>
                         <p className="align-self-center">{message}</p>
                     </div>
-                </Col>
-                <Col className="align-self-end" md={1}>
-                    <Button
-                        variant="primary"
-                        onClick={advance}
-                        className="float-right"
-                    >
-                        Continue
-                    </Button>
                 </Col>
             </>
         );
