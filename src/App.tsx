@@ -307,6 +307,31 @@ export default class App extends Component<{}, State> {
         }
 
         // Bye bye!
+        const runOneTotals = {
+          SECorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.SELF_EXPLAIN],
+          SETotal: Math.floor(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
+          NMCorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.NO_MECH],
+          NMTotal: Math.ceil(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
+        }
+
+        const numOrZero = (n: any) => n ? n : 0;
+        const runTwoTotals = {
+          SECorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.SELF_EXPLAIN]),
+          SETotal: numOrZero(this.state.numTotalSecondRun[Strategy.SELF_EXPLAIN]),
+          NMCorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.NO_MECH]),
+          NMTotal: numOrZero(this.state.numTotalSecondRun[Strategy.NO_MECH]),
+        }
+
+        db.collection('events').add({
+          session: this.unique_id,
+          event: "FINAL_RESULTS",
+          name: this.state.name,
+          runOneTotals,
+          runTwoTotals,
+          bestStrategy: this.state.bestStrategy ? this.state.bestStrategy : null,
+          timestamp: firebase.firestore.Timestamp.now()
+        })
+
         return Step.FINAL;
 
       case Step.FEEDBACK:
