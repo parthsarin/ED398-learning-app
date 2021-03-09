@@ -238,7 +238,7 @@
             }
         },
         {
-            "passage": "Menopause is a time that marks the permanent end of menstruation in a female.\nMenstruation is associated with infertility as well as a number of other symptoms.\nThe main cause of menopause is the aging and depletion of the finite number of eggs created at birth in the ovaries, though it can be accelerated by other factors.",
+            "passage": "Menopause is a time that marks the permanent end of menstruation in a female.\nMenopause is associated with infertility as well as a number of other symptoms.\nThe main cause of menopause is the aging and depletion of the finite number of eggs created at birth in the ovaries, though it can be accelerated by other factors.",
             "question": {
                 "prompt": "Why do males not experience menopause or a menopause-like state?",
                 "answers": [
