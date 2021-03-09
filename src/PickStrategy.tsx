@@ -73,19 +73,19 @@ const PickStrategy: FunctionComponent<Props> =
         // Haven't selected a strategy
         return (
             <>
-                <Col md={1} className="align-self-end">
+                <Col md={2} className="align-self-end">
                     <img
                         style={
                             {
-                                height: avatar.height,
-                                width: avatar.width,
+                                height: avatar.height * 1.5,
+                                width: avatar.width * 1.5,
                             }
                         }
                         src={avatar.neutral}
                         alt=""
                     />
                 </Col>
-                <Col md={11} className="align-self-end">
+                <Col md={10} className="align-self-end">
                     <div className="message-box d-flex" style={
                         {
                             'position': 'relative',

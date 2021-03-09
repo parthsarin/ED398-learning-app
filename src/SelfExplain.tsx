@@ -19,26 +19,28 @@ interface Message {
 
 interface MessageProps { 
     message: Message, 
-    avatar: Avatar 
+    avatar: Avatar,
+    latest: boolean
 }
 
-const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar }) => {
+const MessageBox: FunctionComponent<MessageProps> = ({ message, avatar, latest }) => {
     if (message.bot) {
+        const julietSize = latest ? 4 : 2;
         return (
             <Row className="mt-2">
-                <Col md={2} className="d-flex">
+                <Col md={julietSize} className="d-flex">
                     <img src={avatar.neutral} alt="" className="my-auto rounded-circle w-100" />
                 </Col>
-                <Col md={10} className="se-message-box p-2">
-                    <span className="align-middle">{message.text}</span>
+                <Col md={12 - julietSize} className="se-message-box p-2 d-flex">
+                    <p className="align-middle my-auto">{message.text}</p>
                 </Col>
             </Row>
         );
     } else {
         return (
             <Row className="mt-2">
-                <Col md={12} className="se-message-box p-2">
-                    <span className="align-middle">{message.text}</span>
+                <Col md={12} className="se-message-box p-2 d-flex">
+                    <p className="align-middle my-auto">{message.text}</p>
                 </Col>
             </Row>
         )
@@ -136,7 +138,12 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
                 <div className="flex-grow-1">
                     {
                         history.map((message, i) => 
-                            <MessageBox key={i} message={message} avatar={avatar} />
+                            <MessageBox 
+                                key={i} 
+                                message={message} 
+                                avatar={avatar} 
+                                latest={i === history.length - 1} 
+                            />
                         )
                     }
                 </div>

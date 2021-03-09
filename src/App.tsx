@@ -308,17 +308,17 @@ export default class App extends Component<{}, State> {
 
         // Bye bye!
         const runOneTotals = {
-          SECorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.SELF_EXPLAIN],
+          SECorrect: newGrade[Run.ASSIGNED_STRATEGY]![Strategy.SELF_EXPLAIN],
           SETotal: Math.floor(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
-          NMCorrect: this.state.numCorrect[Run.ASSIGNED_STRATEGY]![Strategy.NO_MECH],
+          NMCorrect: newGrade[Run.ASSIGNED_STRATEGY]![Strategy.NO_MECH],
           NMTotal: Math.ceil(this.state.passages![Run.ASSIGNED_STRATEGY]!.length / 2),
         }
 
         const numOrZero = (n: any) => n ? n : 0;
         const runTwoTotals = {
-          SECorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.SELF_EXPLAIN]),
+          SECorrect: numOrZero(newGrade[Run.PICK_STRATEGY]![Strategy.SELF_EXPLAIN]),
           SETotal: numOrZero(this.state.numTotalSecondRun[Strategy.SELF_EXPLAIN]),
-          NMCorrect: numOrZero(this.state.numCorrect[Run.PICK_STRATEGY]![Strategy.NO_MECH]),
+          NMCorrect: numOrZero(newGrade[Run.PICK_STRATEGY]![Strategy.NO_MECH]),
           NMTotal: numOrZero(this.state.numTotalSecondRun[Strategy.NO_MECH]),
         }
 
@@ -441,10 +441,10 @@ export default class App extends Component<{}, State> {
     choose whether we want to use it or not or not.`;
     return (
       <>
-        <Col md={1} className="align-self-end">
-          { this.buildAvatarBottomLeft() }
+        <Col md={2} className="align-self-end">
+          { this.buildAvatarBottomLeft(1.5) }
         </Col>
-        <Col md={10} className="align-self-end">
+        <Col md={9} className="align-self-end">
           { this.buildLargeMessageBox(message) }
         </Col>
         <Col md={1} className="align-self-end">
@@ -486,10 +486,10 @@ export default class App extends Component<{}, State> {
 
     return (
       <>
-        <Col md={1} className="align-self-end">
-          {this.buildAvatarBottomLeft()}
+        <Col md={2} className="align-self-end">
+          {this.buildAvatarBottomLeft(1.5)}
         </Col>
-        <Col md={10} className="align-self-end">
+        <Col md={9} className="align-self-end">
           <div className="message-box d-flex" style={
             {
               'position': 'relative',
@@ -531,10 +531,10 @@ export default class App extends Component<{}, State> {
             { 
               this.buildLargeMessageBox(
                 "Let's read this passage without using self-explanation!",
-                { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
+                { bottom: 0, width: "80%", height: this.state.height - this.avatar.height - 80, left: 50, marginBottom: 25 }
               ) 
             }
-            { this.buildAvatarBottomLeft(0.8) }
+            { this.buildAvatarBottomLeft(1.2) }
           </Col>
         </>
       );
@@ -576,10 +576,10 @@ export default class App extends Component<{}, State> {
         {
           this.buildLargeMessageBox(
             this.state.error ? this.state.error : "Can you help me answer this question?",
-            { bottom: 0, width: "80%", left: 50, marginBottom: 10 }
+            { bottom: 0, width: "80%", height: this.state.height - this.avatar.height - 80, left: 50, marginBottom: 25 }
           )
         }
-        {this.buildAvatarBottomLeft(0.8)}
+        {this.buildAvatarBottomLeft(1.2)}
       </Col>
     </>
   )
