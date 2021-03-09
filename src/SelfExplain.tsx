@@ -1,8 +1,10 @@
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useEffect, useMemo, useState } from 'react';
 import { Button, Col, Row } from 'react-bootstrap';
 import { PassageData, Avatar } from './App';
 import Passage from './Passage';
 import db, { firebase } from './db';
+import { Subject } from "rxjs";
+import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 interface Props {
     passage: PassageData,
@@ -60,8 +62,41 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
     const [history, setHistory] = useState<Message[]>([firstMessage, secondMessage]);
     const [numLines, setNumLines] = useState<number>(2);
     const [response, setResponse] = useState<string>("");
+
+    // Update the content every time they stop typing
+    const typeSubject$ = useMemo(() => new Subject<string>(), []);
+    useEffect(() => {
+        // Every time something is typed, update the state
+        const stateSubscriber = typeSubject$.subscribe(
+            (val: string) => setResponse(val)
+        );
+
+        // Every time they pause for a few seconds, update the database
+        const syncStream$ = typeSubject$.pipe(
+            debounceTime(1000),
+            distinctUntilChanged()
+        );
+        const dbSubscriber = syncStream$.subscribe(
+            (val: string) => {
+                db.collection('events').add({
+                    ...dbInject,
+                    event: "SE_TYPE_MESSAGE",
+                    piecesShowing: passage.passage.split(/\n/g).slice(0, numLines),
+                    message: val,
+                    timestamp: firebase.firestore.Timestamp.now()
+                });
+            }
+        )
+
+        return () => {
+            stateSubscriber.unsubscribe();
+            dbSubscriber.unsubscribe();
+        }
+    }, [typeSubject$, passage, dbInject, numLines]);
+
     const totalLines = passage.passage.split(/\n/g).length;
 
+    // Handle every time the message is sent
     const handleSend = () => {
         if (!response) return;
 
@@ -154,7 +189,7 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
                                 className="se-message-input w-100 h-100 p-2"
                                 placeholder="Type your response..."
                                 value={response}
-                                onChange={(e) => setResponse(e.target.value)}
+                                onChange={(e) => typeSubject$.next(e.target.value)}
                                 onKeyDown={handleEnter}
                             ></textarea>
                         </Col>

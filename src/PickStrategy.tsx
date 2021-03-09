@@ -24,7 +24,7 @@ const PickStrategy: FunctionComponent<Props> =
             strategy: s,
             giveReward: giveReward,
             timestamp: firebase.firestore.Timestamp.now()
-        })
+        });
         setStrategy(s);
         selectStrategy(s);
     }
