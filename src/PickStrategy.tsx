@@ -2,6 +2,7 @@ import React, { FunctionComponent, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { Avatar, Strategy } from './App';
 import db, { firebase } from './db';
+import { negativePrompt, positivePrompt } from './prompts';
 
 interface Props {
     bestStrategy?: Strategy,
@@ -32,7 +33,7 @@ const PickStrategy: FunctionComponent<Props> =
     if (giveReward && strategy !== null) {
         // Selected a strategy, give a reward
         const positive = (bestStrategy === undefined) || (strategy === bestStrategy);
-        const message = positive ? "Yay! That sounds fun!" : "Oh. Okay. I guess we can do that.";
+        const message = positive ? positivePrompt() : negativePrompt();
 
         setTimeout(advance, 2500);
 

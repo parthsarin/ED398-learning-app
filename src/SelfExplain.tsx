@@ -5,6 +5,7 @@ import Passage from './Passage';
 import db, { firebase } from './db';
 import { Subject } from "rxjs";
 import { debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { seEndPrompt, seMiddlePrompt, seStartPrompt } from './prompts';
 
 interface Props {
     passage: PassageData,
@@ -56,7 +57,7 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
         bot: true,
     }
     const secondMessage = {
-        text: "Hmm. I don't understand how those two sentences connect... Can you explain?",
+        text: seStartPrompt(),
         bot: true,
     }
     const [history, setHistory] = useState<Message[]>([firstMessage, secondMessage]);
@@ -111,12 +112,12 @@ const SelfExplain: FunctionComponent<Props> = ({ passage, avatar, advance, conta
         const moreMessages = numLines < totalLines;
         if (moreMessages) {
             historyUpdate.push({
-                text: "Okay, that makes sense. What about these last two? How do they connect?",
+                text: seMiddlePrompt(),
                 bot: true
             } as Message);
         } else {
             historyUpdate.push({
-                text: "Got it! Whenever you're ready, we can take a look at the question!",
+                text: `${seEndPrompt()} Whenever you're ready, we can take a look at the question!`,
                 bot: true,
             } as Message);
         }
